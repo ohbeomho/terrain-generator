@@ -2,6 +2,26 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createNoise2D } from "simplex-noise";
 
+const noise2D = createNoise2D();
+const baseFrequency = 0.01,
+    baseAmplitude = 12;
+
+// persistence: 레이어마다 amplitude가 얼마나 변할지
+// lacunarity: 레이어마다 frequency가 얼마나 변할지
+function getOctaveNoise(x, z, octaves = 4, persistence = 0.5, lacunarity = 2) {
+    let totalHeight = 0,
+        frequency = baseFrequency,
+        amplitude = baseAmplitude;
+
+    for (let i = 0; i < octaves; i++) {
+        totalHeight += noise2D(x * frequency, z * frequency) * amplitude;
+        amplitude *= persistence;
+        frequency *= lacunarity;
+    }
+
+    return totalHeight;
+}
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
     80,
@@ -27,20 +47,16 @@ const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
 sunLight.position.set(100, 100, 50);
 scene.add(sunLight);
 
-const noise2D = createNoise2D();
-
 // 100x100 크기, 64x64개의 부분
 const geometry = new THREE.PlaneGeometry(100, 100, 64, 64);
 geometry.rotateX(Math.PI / 2); // Y가 위를 향하게 회전
 
 const positionAttribute = geometry.attributes.position;
-const scale = 0.05; // 노이즈 빈도
-const heightMultiplier = 12; // 산의 최고 높이
 
 for (let i = 0; i < positionAttribute.count; i++) {
     const x = positionAttribute.getX(i),
         z = positionAttribute.getZ(i);
-    const y = noise2D(x * scale, z * scale) * heightMultiplier;
+    const y = getOctaveNoise(x, z);
 
     positionAttribute.setY(i, y);
 }
