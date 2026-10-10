@@ -50,8 +50,14 @@ scene.add(sunLight);
 // 100x100 크기, 64x64개의 부분
 const geometry = new THREE.PlaneGeometry(100, 100, 64, 64);
 geometry.rotateX(Math.PI / 2); // Y가 위를 향하게 회전
+// 색상 속성 추가
+geometry.attributes.color = new THREE.BufferAttribute(
+    new Float32Array(geometry.attributes.position.count * 3),
+    3,
+);
 
-const positionAttribute = geometry.attributes.position;
+const positionAttribute = geometry.attributes.position,
+    colorAttribute = geometry.attributes.color;
 
 for (let i = 0; i < positionAttribute.count; i++) {
     const x = positionAttribute.getX(i),
@@ -59,6 +65,9 @@ for (let i = 0; i < positionAttribute.count; i++) {
     const y = getOctaveNoise(x, z);
 
     positionAttribute.setY(i, y);
+
+    if (y < 3) colorAttribute.setXYZ(i, 0.2, 0.2, 0.8);
+    else colorAttribute.setXYZ(i, 0.2, 0.8, 0.2);
 }
 
 // 빛이 굴곡에 대해서 제대로 반응하도록 vertex normal(이 뭔지 모르겠지만) 다시 계산
@@ -67,7 +76,8 @@ geometry.computeVertexNormals();
 // 질감
 const material = new THREE.MeshStandardMaterial({
     flatShading: true,
-    color: 0x3f9b53,
+    color: 0xffffff,
+    vertexColors: true,
     wireframe: false,
     side: THREE.DoubleSide,
 });
