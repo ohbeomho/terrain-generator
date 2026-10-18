@@ -1,10 +1,48 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Terrain Generator</title>
-        <script type="module" src="index.js" defer></script>
-    </head>
-    <body></body>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terrain Generator</title>
+    <script type="module" src="index.js" defer></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            position: absolute;
+            padding: 0.5rem;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <p>Octaves <input type="number" id="octaves-input" /></p>
+        <p>
+            Base Frequency
+            <input type="number" id="base-frequency-input" />
+            <br />
+            Lacunarity
+            <input type="number" id="lacunarity-input" />
+        </p>
+        <p>
+            Base Amplitude
+            <input type="number" id="base-amplitude-input" />
+            <br />
+            Persistence
+            <input type="number" id="persistence-input" />
+            <br />
+        </p>
+        <p><button id="generate">Generate Terrain</button></p>
+    </div>
+</body>
+
 </html>

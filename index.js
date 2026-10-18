@@ -3,12 +3,15 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createNoise2D } from "simplex-noise";
 
 const noise2D = createNoise2D();
-const baseFrequency = 0.01,
-    baseAmplitude = 12;
+let baseFrequency = 0.01,
+    baseAmplitude = 12,
+    octaves = 4,
+    persistence = 0.5,
+    lacunarity = 2;
 
 // persistence: 레이어마다 amplitude가 얼마나 변할지
 // lacunarity: 레이어마다 frequency가 얼마나 변할지
-function getOctaveNoise(x, z, octaves = 4, persistence = 0.5, lacunarity = 2) {
+function getOctaveNoise(x, z, octaves, persistence, lacunarity) {
     let totalHeight = 0,
         frequency = baseFrequency,
         amplitude = baseAmplitude;
@@ -59,19 +62,25 @@ geometry.attributes.color = new THREE.BufferAttribute(
 const positionAttribute = geometry.attributes.position,
     colorAttribute = geometry.attributes.color;
 
-for (let i = 0; i < positionAttribute.count; i++) {
-    const x = positionAttribute.getX(i),
-        z = positionAttribute.getZ(i);
-    const y = getOctaveNoise(x, z);
+function generateTerrain() {
+    for (let i = 0; i < positionAttribute.count; i++) {
+        const x = positionAttribute.getX(i),
+            z = positionAttribute.getZ(i);
+        const y = getOctaveNoise(x, z, octaves, persistence, lacunarity);
 
-    positionAttribute.setY(i, y);
+        positionAttribute.setY(i, y);
 
-    if (y < 3) colorAttribute.setXYZ(i, 0.2, 0.2, 0.8);
-    else colorAttribute.setXYZ(i, 0.2, 0.8, 0.2);
+        if (y < 3) colorAttribute.setXYZ(i, 0.2, 0.2, 0.8);
+        else colorAttribute.setXYZ(i, 0.2, 0.8, 0.2);
+    }
+
+    positionAttribute.needsUpdate = true;
+    colorAttribute.needsUpdate = true;
+    // 빛이 굴곡에 대해서 제대로 반응하도록 vertex normal(이 뭔지 모르겠지만) 다시 계산
+    geometry.computeVertexNormals();
 }
 
-// 빛이 굴곡에 대해서 제대로 반응하도록 vertex normal(이 뭔지 모르겠지만) 다시 계산
-geometry.computeVertexNormals();
+generateTerrain();
 
 // 질감
 const material = new THREE.MeshStandardMaterial({
@@ -99,3 +108,23 @@ function animate() {
 }
 
 animate();
+
+const generateButton = document.getElementById("generate");
+const octavesInput = document.getElementById("octaves-input"),
+    baseFrequencyInput = document.getElementById("base-frequency-input"),
+    baseAmplitudeInput = document.getElementById("base-amplitude-input"),
+    lacunarityInput = document.getElementById("lacunarity-input"),
+    persistenceInput = document.getElementById("persistence-input");
+
+octavesInput.value = octaves;
+baseFrequencyInput.value = baseFrequency;
+baseAmplitudeInput.value = baseAmplitude;
+lacunarityInput.value = lacunarity;
+persistenceInput.value = persistence;
+
+octavesInput.addEventListener("input", () => (octaves = octavesInput.valueAsNumber));
+baseFrequencyInput.addEventListener("input", () => (baseFrequency = baseFrequencyInput.valueAsNumber));
+baseAmplitudeInput.addEventListener("input", () => (baseAmplitude = baseAmplitudeInput.valueAsNumber));
+lacunarityInput.addEventListener("input", () => (lacunarity = lacunarityInput.valueAsNumber));
+persistenceInput.addEventListener("input", () => (persistence = persistenceInput.valueAsNumber));
+generateButton.addEventListener("click", generateTerrain);
